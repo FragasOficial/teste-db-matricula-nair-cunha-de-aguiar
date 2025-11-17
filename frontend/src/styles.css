@@ -674,3 +674,144 @@ aside.detail {
     font-size: 14px;
   }
 }
+
+/* styles.css - Adicione estes estilos */
+
+/* 🔥 DASHBOARD DE LOCALIDADES */
+.localidade-dashboard {
+  border-left-color: #9f7aea;
+  margin-top: 16px;
+}
+
+.localidade-card {
+  border-left: 3px solid #9f7aea;
+}
+
+.localidade-total {
+  background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%);
+}
+
+/* Gráfico de barras */
+.localidade-chart {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.localidade-chart h4 {
+  margin: 0 0 12px 0;
+  color: #2d3748;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chart-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chart-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chart-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 180px;
+  font-size: 12px;
+}
+
+.localidade-name {
+  font-weight: 500;
+  color: #4a5568;
+}
+
+.localidade-count {
+  background: #2b6cb0;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 11px;
+  min-width: 24px;
+  text-align: center;
+}
+
+.chart-bar-track {
+  flex: 1;
+  height: 20px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.chart-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9f7aea, #805ad5);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  min-width: 20px;
+}
+
+/* Indicador de mais itens */
+.more-items .turma-name {
+  color: #718096;
+  font-style: italic;
+}
+
+.more-items .turma-count {
+  display: none;
+}
+
+/* Cores diferentes para cards de localidade */
+.localidade-card:nth-child(1) { border-left-color: #9f7aea; }
+.localidade-card:nth-child(2) { border-left-color: #ed64a6; }
+.localidade-card:nth-child(3) { border-left-color: #ed8936; }
+.localidade-card:nth-child(4) { border-left-color: #48bb78; }
+.localidade-card:nth-child(5) { border-left-color: #4299e1; }
+.localidade-card:nth-child(6) { border-left-color: #0bc5ea; }
+
+/* Responsividade para o gráfico */
+@media (max-width: 768px) {
+  .chart-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  
+  .chart-label {
+    min-width: auto;
+  }
+  
+  .chart-bar-track {
+    height: 16px;
+  }
+}
+
+/* Melhorias visuais para estatísticas */
+.stat-card .stat-turmas {
+  max-height: 120px;
+  overflow-y: auto;
+}
+
+.stat-turmas::-webkit-scrollbar {
+  width: 4px;
+}
+
+.stat-turmas::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 2px;
+}
+
+.stat-turmas::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 2px;
+}
+
+.stat-turmas::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}

@@ -23,33 +23,79 @@ export async function fetchStudents({ page = 1, limit = 50, q = '' } = {}) {
 }
 
 export async function getStudent(id) {
-  const res = await fetch(`${API}/students/${id}`);
-  if (!res.ok) throw new Error('Erro ao buscar aluno');
-  return res.json();
+  try {
+    const res = await fetch(`${API}/students/${id}`);
+    if (!res.ok) throw new Error(`Erro ${res.status}: ${await res.text()}`);
+    return res.json();
+  } catch (error) {
+    console.error('❌ Erro ao buscar aluno:', error);
+    throw error;
+  }
 }
 
+// 🔥 CORREÇÃO: Função createStudent corrigida
 export async function createStudent(body) {
-  const res = await fetch(`${API}/students`, { 
-    method: 'POST', 
-    headers: {'Content-Type': 'application/json'}, 
-    body: JSON.stringify(body) 
-  });
-  if (!res.ok) throw new Error('Erro ao criar aluno');
-  return res.json();
+  try {
+    console.log('➕ Criando aluno:', body);
+    
+    const res = await fetch(`${API}/students`, { 
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json',
+      }, 
+      body: JSON.stringify(body) 
+    });
+    
+    console.log('📨 Resposta do servidor:', res.status, res.statusText);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('❌ Erro do servidor:', errorText);
+      throw new Error(`Erro ${res.status}: ${errorText || 'Erro ao criar aluno'}`);
+    }
+    
+    const data = await res.json();
+    console.log('✅ Aluno criado com sucesso:', data);
+    return data;
+    
+  } catch (error) {
+    console.error('❌ Erro na função createStudent:', error);
+    throw error;
+  }
 }
 
 export async function updateStudent(id, body) {
-  const res = await fetch(`${API}/students/${id}`, { 
-    method: 'PUT', 
-    headers: {'Content-Type': 'application/json'}, 
-    body: JSON.stringify(body) 
-  });
-  if (!res.ok) throw new Error('Erro ao atualizar aluno');
-  return res.json();
+  try {
+    const res = await fetch(`${API}/students/${id}`, { 
+      method: 'PUT', 
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify(body) 
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Erro ${res.status}: ${errorText || 'Erro ao atualizar aluno'}`);
+    }
+    
+    return res.json();
+  } catch (error) {
+    console.error('❌ Erro ao atualizar aluno:', error);
+    throw error;
+  }
 }
 
 export async function deleteStudent(id) {
-  const res = await fetch(`${API}/students/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Erro ao excluir aluno');
-  return res.json();
+  try {
+    const res = await fetch(`${API}/students/${id}`, { method: 'DELETE' });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Erro ${res.status}: ${errorText || 'Erro ao excluir aluno'}`);
+    }
+    
+    return res.json();
+  } catch (error) {
+    console.error('❌ Erro ao excluir aluno:', error);
+    throw error;
+  }
 }
