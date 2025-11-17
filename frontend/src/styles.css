@@ -633,3 +633,44 @@ aside.detail {
 .stat-card:nth-child(4) { border-left: 3px solid #9f7aea; }
 .stat-card:nth-child(5) { border-left: 3px solid #f56565; }
 .stat-card:nth-child(6) { border-left: 3px solid #38b2ac; }
+
+/* styles.css - Adicione estes estilos */
+
+.stats-loading {
+  text-align: center;
+  padding: 20px;
+  color: #718096;
+  font-style: italic;
+}
+
+/* Melhorar a visualização das estatísticas */
+.stat-card .stat-title {
+  font-size: 13px;
+}
+
+.stat-card .stat-total {
+  font-size: 16px;
+}
+
+/* Destaque para números maiores */
+.stat-card:nth-child(1) .stat-total { color: #4299e1; }
+.stat-card:nth-child(2) .stat-total { color: #ed8936; }
+.stat-card:nth-child(3) .stat-total { color: #48bb78; }
+.stat-card:nth-child(4) .stat-total { color: #9f7aea; }
+
+/* Ajustes responsivos */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-dashboard h3 {
+    font-size: 14px;
+  }
+}
