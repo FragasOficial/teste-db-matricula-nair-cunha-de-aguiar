@@ -2,13 +2,13 @@ import React, { useState, useRef } from 'react';
 import jsPDF from 'jspdf';
 import './DeclaracaoModal.css';
 
-// Importe a imagem de background - ajuste o caminho conforme necessário
-import backgroundImage from '../img/background.png';
+// 🔥 CORREÇÃO: Use caminho público
+const backgroundImage = '/img/background.png';
 
 const DeclaracaoModal = ({ aluno, onClose }) => {
   const [tipoDeclaracao, setTipoDeclaracao] = useState('vaga');
-  const [mostrarPreview, setMostrarPreview] = useState(false);
   const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfGerado, setPdfGerado] = useState(false);
   const previewRef = useRef(null);
 
   const tiposDeclaracao = {
@@ -58,19 +58,33 @@ const DeclaracaoModal = ({ aluno, onClose }) => {
     }
   };
 
-  // Função para adicionar background ao PDF
+  // Função para carregar a imagem e adicionar ao PDF
   const addBackgroundToPDF = (doc) => {
-    // Carrega a imagem de background e a adiciona ao PDF
-    doc.addImage(backgroundImage, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        doc.addImage(img, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+        resolve();
+      };
+      img.onerror = () => {
+        console.warn('Background não carregado, gerando declaração sem background');
+        resolve();
+      };
+      img.src = backgroundImage;
+    });
   };
 
-  const gerarPDF = (download = false) => {
+  const gerarPDF = async (download = false) => {
     const doc = new jsPDF("portrait", "pt", "a4");
     const largura = doc.internal.pageSize.getWidth();
     const altura = doc.internal.pageSize.getHeight();
 
-    // 🔥 ADICIONA O BACKGROUND PERSONALIZADO
-    addBackgroundToPDF(doc);
+    try {
+      // 🔥 ADICIONA O BACKGROUND PERSONALIZADO
+      await addBackgroundToPDF(doc);
+    } catch (error) {
+      console.warn('Erro ao carregar background:', error);
+    }
 
     // Configurações de fonte e cor para texto sobre o background
     doc.setFont("Times", "Normal");
@@ -106,48 +120,76 @@ const DeclaracaoModal = ({ aluno, onClose }) => {
 
     if (download) {
       doc.save(`Declaracao_${tipoDeclaracao}_${aluno.nome.replace(/\s+/g, '_')}.pdf`);
-      alert('Declaração baixada com sucesso!');
+      alert('✅ Declaração baixada com sucesso!');
     } else {
       // Criar URL para preview
       const pdfBlob = doc.output('blob');
       const url = URL.createObjectURL(pdfBlob);
       setPdfUrl(url);
-      setMostrarPreview(true);
+      setPdfGerado(true);
     }
   };
 
-  // Função para visualizar o PDF com background antes de gerar
-  const visualizarComBackground = () => {
-    const doc = new jsPDF("portrait", "pt", "a4");
-    
-    // Adiciona o background
-    addBackgroundToPDF(doc);
-    
-    // Adiciona texto de preview
-    doc.setFont("Times", "Normal");
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Pré-visualização: ${tiposDeclaracao[tipoDeclaracao].nome}`, 50, 50);
-    doc.text(`Aluno: ${aluno.nome}`, 50, 70);
-    doc.text(`Série: ${aluno.serieAno}º ano ${aluno.turma}`, 50, 90);
-    
-    const pdfBlob = doc.output('blob');
-    const url = URL.createObjectURL(pdfBlob);
-    setPdfUrl(url);
-    setMostrarPreview(true);
-  };
-
+  // 🔥 COMPARTILHAMENTO DIRETO - SISTEMA ANTERIOR
   const compartilharWhatsApp = () => {
-    const texto = `Declaração de ${tiposDeclaracao[tipoDeclaracao].nome} - ${aluno.nome}`;
+    if (!pdfGerado) {
+      alert('⚠️ Gere a declaração primeiro antes de compartilhar!');
+      return;
+    }
+
+    const texto = `📄 *Declaração Escolar - ${tiposDeclaracao[tipoDeclaracao].nome}*\n\n` +
+                 `👤 *Aluno:* ${aluno.nome}\n` +
+                 `📚 *Série/Turma:* ${aluno.serieAno}º ano ${aluno.turma}\n` +
+                 `🏫 *Escola:* E.E.F. Nair Cunha de Aguiar\n\n` +
+                 `_Declaração gerada em ${new Date().toLocaleDateString('pt-BR')}_`;
+
     const url = `https://wa.me/?text=${encodeURIComponent(texto)}`;
     window.open(url, '_blank');
   };
 
   const compartilharEmail = () => {
-    const assunto = `Declaração - ${aluno.nome}`;
-    const corpo = `Segue em anexo a declaração de ${tiposDeclaracao[tipoDeclaracao].nome} para ${aluno.nome}.`;
+    if (!pdfGerado) {
+      alert('⚠️ Gere a declaração primeiro antes de compartilhar!');
+      return;
+    }
+
+    const assunto = `📄 Declaração Escolar - ${aluno.nome}`;
+    const corpo = `Prezado(a),\n\nSegue em anexo a declaração escolar solicitada:\n\n` +
+                  `🔸 *Tipo:* ${tiposDeclaracao[tipoDeclaracao].nome}\n` +
+                  `🔸 *Aluno:* ${aluno.nome}\n` +
+                  `🔸 *Série/Turma:* ${aluno.serieAno}º ano ${aluno.turma}\n` +
+                  `🔸 *Data de Emissão:* ${new Date().toLocaleDateString('pt-BR')}\n\n` +
+                  `Atenciosamente,\nE.E.F. Nair Cunha de Aguiar\nSítio Oiticica, Frecheirinha-CE`;
+
     const mailto = `mailto:?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`;
     window.location.href = mailto;
+  };
+
+  const baixarPDF = () => {
+    if (!pdfGerado) {
+      alert('⚠️ Gere a declaração primeiro antes de baixar!');
+      return;
+    }
+    
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = `Declaracao_${tipoDeclaracao}_${aluno.nome.replace(/\s+/g, '_')}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert('✅ Declaração baixada com sucesso!');
+  };
+
+  const imprimirPDF = () => {
+    if (!pdfGerado) {
+      alert('⚠️ Gere a declaração primeiro antes de imprimir!');
+      return;
+    }
+
+    const iframe = previewRef.current;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.print();
+    }
   };
 
   if (!aluno) return null;
@@ -155,131 +197,143 @@ const DeclaracaoModal = ({ aluno, onClose }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        {!mostrarPreview ? (
-          <>
-            <h2>📄 Gerar Declaração com Background Oficial</h2>
-            
-            <div className="aluno-info">
-              <h3>Aluno: {aluno.nome}</h3>
-              <p>Série/Turma: {aluno.serieAno}º ano {aluno.turma}</p>
-              {aluno.dataNascimento && (
-                <p>Nascimento: {new Date(aluno.dataNascimento).toLocaleDateString('pt-BR')}</p>
-              )}
-            </div>
+        <h2>📄 Gerar Declaração com Background Oficial</h2>
+        
+        <div className="aluno-info">
+          <h3>👤 Aluno: {aluno.nome}</h3>
+          <p>📚 Série/Turma: {aluno.serieAno}º ano {aluno.turma}</p>
+          {aluno.dataNascimento && (
+            <p>🎂 Nascimento: {new Date(aluno.dataNascimento).toLocaleDateString('pt-BR')}</p>
+          )}
+        </div>
 
-            <div className="tipo-selecao">
-              <label>Tipo de Declaração:</label>
-              <select 
-                value={tipoDeclaracao} 
-                onChange={(e) => setTipoDeclaracao(e.target.value)}
-              >
-                <option value="vaga">✅ Vaga Disponível</option>
-                <option value="matricula">📝 Matrícula</option>
-                <option value="transferencia">🔄 Transferência</option>
-                <option value="frequencia">📊 Frequência</option>
-              </select>
-            </div>
+        <div className="tipo-selecao">
+          <label>📋 Tipo de Declaração:</label>
+          <select 
+            value={tipoDeclaracao} 
+            onChange={(e) => {
+              setTipoDeclaracao(e.target.value);
+              setPdfGerado(false); // Reseta o PDF quando mudar o tipo
+            }}
+          >
+            <option value="vaga">✅ Vaga Disponível</option>
+            <option value="matricula">📝 Matrícula</option>
+            <option value="transferencia">🔄 Transferência</option>
+            <option value="frequencia">📊 Frequência</option>
+          </select>
+        </div>
 
-            <div className="preview-texto">
-              <h4>📋 Texto da Declaração:</h4>
-              <div className="texto-preview">
-                <div className="background-notice">
-                  <strong>⚠️ Background Oficial Incluído:</strong> 
-                  Cabeçalho completo, rodapé com assinatura da diretora "Voltília Maria Costa" e informações institucionais.
-                </div>
-                {tiposDeclaracao[tipoDeclaracao].template(aluno).split('\n').map((linha, i) => (
-                  <p key={i}>{linha}</p>
-                ))}
-                <p className="texto-adicional">{tiposDeclaracao[tipoDeclaracao].adicional}</p>
-              </div>
+        <div className="preview-texto">
+          <h4>📝 Texto da Declaração:</h4>
+          <div className="texto-preview">
+            <div className="background-notice">
+              <strong>🎨 Background Oficial Incluído:</strong> 
+              Cabeçalho completo, rodapé com assinatura da diretora "Voltília Maria Costa" e informações institucionais.
             </div>
+            {tiposDeclaracao[tipoDeclaracao].template(aluno).split('\n').map((linha, i) => (
+              <p key={i}>{linha}</p>
+            ))}
+            <p className="texto-adicional">{tiposDeclaracao[tipoDeclaracao].adicional}</p>
+          </div>
+        </div>
 
-            <div className="background-preview">
-              <h4>🎨 Visualização do Background:</h4>
-              <div className="background-image">
-                <img 
-                  src={backgroundImage} 
-                  alt="Background Oficial da Declaração" 
-                  style={{maxWidth: '100%', border: '1px solid #ddd', borderRadius: '4px'}}
-                />
-                <div className="background-info">
-                  <small>Modelo oficial com cabeçalho institucional e assinatura da diretora</small>
-                </div>
-              </div>
+        <div className="background-preview">
+          <h4>🏫 Visualização do Background:</h4>
+          <div className="background-image">
+            <img 
+              src={backgroundImage} 
+              alt="Background Oficial da Declaração" 
+              style={{maxWidth: '100%', border: '1px solid #ddd', borderRadius: '4px', maxHeight: '200px'}}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                document.querySelector('.background-info').innerHTML = 
+                  '<small>⚠️ Background não carregado. Certifique-se de que o arquivo background.png está na pasta public/img/</small>';
+              }}
+            />
+            <div className="background-info">
+              <small>Modelo oficial com cabeçalho institucional e assinatura da diretora "Voltília Maria Costa"</small>
             </div>
+          </div>
+        </div>
 
-            <div className="modal-actions">
-              <button 
-                className="btn-preview"
-                onClick={() => gerarPDF(false)}
-              >
-                👁️ Ver Preview Completo
-              </button>
-              <button 
-                className="btn-download"
-                onClick={() => gerarPDF(true)}
-              >
-                ⬇️ Baixar PDF com Background
-              </button>
-              <button className="btn-cancel" onClick={onClose}>
-                ❌ Cancelar
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <h2>👁️ Preview da Declaração - Background Oficial</h2>
+        {/* 🔥 AÇÕES PRINCIPAIS - GERAR DECLARAÇÃO */}
+        <div className="modal-actions">
+          <button 
+            className="btn-preview"
+            onClick={() => gerarPDF(false)}
+            disabled={pdfGerado}
+          >
+            {pdfGerado ? '✅ Declaração Gerada' : '👁️ Gerar Declaração'}
+          </button>
+          
+          <button className="btn-cancel" onClick={onClose}>
+            ❌ Fechar
+          </button>
+        </div>
+
+        {/* 🔥 AÇÕES DE COMPARTILHAMENTO - APÓS GERAR PDF */}
+        {pdfGerado && (
+          <div className="share-section">
+            <h4>📤 Compartilhar Declaração:</h4>
             
             <div className="pdf-preview">
               <iframe 
                 src={pdfUrl} 
                 width="100%" 
-                height="500"
+                height="400"
                 title="Preview da Declaração com Background"
                 ref={previewRef}
+                style={{border: '1px solid #ddd', borderRadius: '8px'}}
               />
             </div>
 
             <div className="preview-info">
-              <p><strong>✅ Background Incluído:</strong> Cabeçalho institucional, informações da escola e assinatura da diretora "Voltília Maria Costa"</p>
+              <p>
+                <strong>✅ Declaração Gerada com Sucesso!</strong><br/>
+                Agora você pode baixar, imprimir ou compartilhar a declaração.
+              </p>
             </div>
 
-            <div className="preview-actions">
+            <div className="share-actions">
               <button 
                 className="btn-download"
-                onClick={() => gerarPDF(true)}
+                onClick={baixarPDF}
               >
                 ⬇️ Baixar PDF
               </button>
+              
               <button 
                 className="btn-print"
-                onClick={() => {
-                  const iframe = previewRef.current;
-                  iframe.contentWindow.print();
-                }}
+                onClick={imprimirPDF}
               >
                 🖨️ Imprimir
               </button>
+              
               <button 
                 className="btn-whatsapp"
                 onClick={compartilharWhatsApp}
               >
                 📱 WhatsApp
               </button>
+              
               <button 
                 className="btn-email"
                 onClick={compartilharEmail}
               >
                 📧 Email
               </button>
+
               <button 
-                className="btn-back"
-                onClick={() => setMostrarPreview(false)}
+                className="btn-regenerate"
+                onClick={() => {
+                  setPdfGerado(false);
+                  setPdfUrl('');
+                }}
               >
-                ↩️ Voltar para Edição
+                🔄 Gerar Outra
               </button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
