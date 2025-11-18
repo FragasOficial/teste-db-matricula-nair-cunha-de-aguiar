@@ -1,0 +1,75 @@
+/* Novos estilos para o background personalizado */
+.background-notice {
+  background: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.background-preview {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.background-preview h4 {
+  margin: 0 0 12px 0;
+  color: #495057;
+}
+
+.background-image {
+  text-align: center;
+}
+
+.background-info {
+  margin-top: 8px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.texto-adicional {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px dashed #dee2e6;
+  font-style: italic;
+  color: #495057;
+}
+
+.preview-info {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 15px 0;
+  text-align: center;
+}
+
+.preview-info p {
+  margin: 0;
+  color: #155724;
+}
+
+/* Melhorias nos botões */
+.btn-preview {
+  background: #17a2b8 !important;
+}
+
+.btn-preview:hover {
+  background: #138496 !important;
+}
+
+/* Ajustes responsivos */
+@media (max-width: 768px) {
+  .background-preview {
+    padding: 10px;
+  }
+  
+  .background-image img {
+    max-width: 100%;
+    height: auto;
+  }
+}
