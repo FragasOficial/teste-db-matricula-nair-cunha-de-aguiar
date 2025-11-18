@@ -34,6 +34,7 @@ export async function getStudent(id) {
 }
 
 // 🔥 CORREÇÃO: Função createStudent corrigida
+// Na função createStudent, atualize o body para incluir os novos campos:
 export async function createStudent(body) {
   try {
     console.log('➕ Criando aluno:', body);
@@ -43,27 +44,18 @@ export async function createStudent(body) {
       headers: {
         'Content-Type': 'application/json',
       }, 
-      body: JSON.stringify(body) 
+      body: JSON.stringify({
+        ...body,
+        nomeMae: body.nomeMae || '',
+        nomePai: body.nomePai || '',
+        status: body.status || 'Matriculado'
+      }) 
     });
-    
-    console.log('📨 Resposta do servidor:', res.status, res.statusText);
-    
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error('❌ Erro do servidor:', errorText);
-      throw new Error(`Erro ${res.status}: ${errorText || 'Erro ao criar aluno'}`);
-    }
-    
-    const data = await res.json();
-    console.log('✅ Aluno criado com sucesso:', data);
-    return data;
-    
+    // ... resto do código
   } catch (error) {
-    console.error('❌ Erro na função createStudent:', error);
-    throw error;
+    // ... tratamento de erro
   }
 }
-
 export async function updateStudent(id, body) {
   try {
     const res = await fetch(`${API}/students/${id}`, { 
