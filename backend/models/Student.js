@@ -1,3 +1,4 @@
+// models/Student.js - VERSÃO CORRIGIDA
 const mongoose = require('mongoose');
 
 const NotaSchema = new mongoose.Schema({
@@ -35,8 +36,12 @@ const HistoricoSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const StudentSchema = new mongoose.Schema({
-  // Campos principais
-  nome: { type: String, trim: true },
+  // Campos principais - AGORA COM required: true
+  nome: { 
+    type: String, 
+    trim: true, 
+    required: [true, 'Nome é obrigatório'] 
+  },
   dataNascimento: { type: Date },
   cpf: { type: String, trim: true },
   cartaoSUS: { type: String, trim: true },
@@ -58,22 +63,12 @@ const StudentSchema = new mongoose.Schema({
   notas: [NotaSchema],
   
   // Histórico escolar
-  historico: [HistoricoSchema],
+  historico: [HistoricoSchema]
   
-  // Campos originais para compatibilidade
-  "Nome do Aluno": { type: String, trim: true },
-  "Data de Nasc.": { type: Date },
-  "Cartão do SUS": { type: String, trim: true },
-  "Série/Ano": { type: String, trim: true },
-  "Turma": { type: String, trim: true },
-  "Turno": { type: String, trim: true },
-  "Status": { type: String, trim: true },
-  "Transporte": { type: String, trim: true },
-  "Localidade": { type: String, trim: true }
-
+  // REMOVER campos originais para evitar conflitos
 }, { 
-  timestamps: true,
-  strict: false
+  timestamps: true
+  // REMOVIDO: strict: false - isso causa problemas
 });
 
 module.exports = mongoose.model('Student', StudentSchema);

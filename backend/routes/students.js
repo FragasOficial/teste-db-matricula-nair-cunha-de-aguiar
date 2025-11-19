@@ -329,60 +329,104 @@ router.get('/:id/historico', async (req, res) => {
 });
 
 // POST /students/:id/historico - Adicionar histórico
-router.post('/:id/historico', async (req, res) => {
+// routes/students.js - ROTA POST CORRIGIDA
+router.post('/', async (req, res) => {
   try {
-    const { id } = req.params;
+    console.log('📥 Dados recebidos:', JSON.stringify(req.body, null, 2));
     
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ error: 'ID inválido' });
+    const {
+      nome,
+      dataNascimento,
+      cpf,
+      cartaoSUS,
+      nomeMae,
+      nomePai,
+      serieAno,
+      turma,
+      turno,
+      status = 'Matriculado',
+      transporte,
+      localidade
+    } = req.body;
+
+    // Validação mais robusta
+    if (!nome || nome.trim().length === 0) {
+      return res.status(400).json({ 
+        error: 'Nome é obrigatório',
+        received: req.body 
+      });
     }
 
-    const student = await Student.findById(id);
-    
-    if (!student) {
-      return res.status(404).json({ error: 'Aluno não encontrado' });
-    }
-
-    const novoHistorico = {
-      ...req.body,
-      _id: new mongoose.Types.ObjectId(),
-      createdAt: new Date(),
-      updatedAt: new Date()
+    // Preparar dados para salvar
+    const studentData = {
+      nome: nome.trim(),
+      dataNascimento: dataNascimento || null,
+      cpf: cpf ? cpf.toString().replace(/\D/g, '') : '',
+      cartaoSUS: cartaoSUS || '',
+      nomeMae: nomeMae || '',
+      nomePai: nomePai || '',
+      serieAno: serieAno || '',
+      turma: turma || '',
+      turno: turno || '',
+      status: status || 'Matriculado',
+      transporte: transporte || '',
+      localidade: localidade || '',
+      notas: [],
+      historico: []
     };
 
-    student.historico.push(novoHistorico);
-    await student.save();
+    console.log('💾 Tentando salvar:', studentData);
 
-    res.status(201).json(novoHistorico);
+    // Tentar salvar no banco
+    const student = new Student(studentData);
+    const savedStudent = await student.save();
+
+    console.log('✅ Aluno salvo com ID:', savedStudent._id);
+
+    // Retornar resposta de sucesso
+    res.status(201).json({
+      success: true,
+      message: 'Aluno criado com sucesso',
+      data: {
+        _id: savedStudent._id,
+        nome: savedStudent.nome,
+        dataNascimento: savedStudent.dataNascimento,
+        cpf: savedStudent.cpf,
+        serieAno: savedStudent.serieAno,
+        turma: savedStudent.turma,
+        localidade: savedStudent.localidade,
+        cartaoSUS: savedStudent.cartaoSUS,
+        turno: savedStudent.turno,
+        status: savedStudent.status,
+        transporte: savedStudent.transporte
+      }
+    });
+
   } catch (err) {
-    console.error('Erro ao adicionar histórico:', err);
-    res.status(500).json({ error: err.message });
+    console.error('❌ ERRO DETALHADO:', err);
+    
+    // Log mais detalhado do erro
+    if (err.name === 'ValidationError') {
+      const errors = Object.values(err.errors).map(e => e.message);
+      return res.status(400).json({ 
+        error: 'Erro de validação', 
+        details: errors,
+        fullError: err.message 
+      });
+    }
+    
+    if (err.code === 11000) {
+      return res.status(400).json({ 
+        error: 'Dados duplicados',
+        details: 'CPF ou Cartão SUS já cadastrado' 
+      });
+    }
+    
+    res.status(500).json({ 
+      error: 'Erro interno do servidor',
+      message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
-
-// DELETE /students/:id/historico/:historicoId - Excluir histórico
-router.delete('/:id/historico/:historicoId', async (req, res) => {
-  try {
-    const { id, historicoId } = req.params;
-    
-    if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(historicoId)) {
-      return res.status(400).json({ error: 'ID inválido' });
-    }
-
-    const student = await Student.findById(id);
-    
-    if (!student) {
-      return res.status(404).json({ error: 'Aluno não encontrado' });
-    }
-
-    student.historico = student.historico.filter(h => h._id.toString() !== historicoId);
-    await student.save();
-
-    res.json({ message: 'Histórico excluído com sucesso' });
-  } catch (err) {
-    console.error('Erro ao excluir histórico:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 module.exports = router;
