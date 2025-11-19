@@ -22,6 +22,58 @@ export async function fetchStudents({ page = 1, limit = 50, q = '' } = {}) {
   }
 }
 
+// 🔥 FUNÇÕES PARA HISTÓRICO
+export async function getHistoricoAluno(id) {
+  try {
+    const res = await fetch(`${API}/students/${id}/historico`);
+    if (!res.ok) throw new Error(`Erro ${res.status}: ${await res.text()}`);
+    return res.json();
+  } catch (error) {
+    console.error('❌ Erro ao buscar histórico:', error);
+    throw error;
+  }
+}
+
+export async function addHistoricoAluno(id, historicoData) {
+  try {
+    const res = await fetch(`${API}/students/${id}/historico`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(historicoData)
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Erro ${res.status}: ${errorText || 'Erro ao adicionar histórico'}`);
+    }
+    
+    return res.json();
+  } catch (error) {
+    console.error('❌ Erro ao adicionar histórico:', error);
+    throw error;
+  }
+}
+
+export async function deleteHistoricoAluno(id, historicoId) {
+  try {
+    const res = await fetch(`${API}/students/${id}/historico/${historicoId}`, {
+      method: 'DELETE'
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`Erro ${res.status}: ${errorText || 'Erro ao excluir histórico'}`);
+    }
+    
+    return res.json();
+  } catch (error) {
+    console.error('❌ Erro ao excluir histórico:', error);
+    throw error;
+  }
+}
+
 export async function getStudent(id) {
   try {
     const res = await fetch(`${API}/students/${id}`);

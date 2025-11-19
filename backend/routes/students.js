@@ -306,4 +306,83 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// GET /students/:id/historico - Buscar histórico do aluno
+router.get('/:id/historico', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'ID inválido' });
+    }
+
+    const student = await Student.findById(id).select('historico');
+    
+    if (!student) {
+      return res.status(404).json({ error: 'Aluno não encontrado' });
+    }
+
+    res.json(student.historico || []);
+  } catch (err) {
+    console.error('Erro ao buscar histórico:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /students/:id/historico - Adicionar histórico
+router.post('/:id/historico', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'ID inválido' });
+    }
+
+    const student = await Student.findById(id);
+    
+    if (!student) {
+      return res.status(404).json({ error: 'Aluno não encontrado' });
+    }
+
+    const novoHistorico = {
+      ...req.body,
+      _id: new mongoose.Types.ObjectId(),
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    student.historico.push(novoHistorico);
+    await student.save();
+
+    res.status(201).json(novoHistorico);
+  } catch (err) {
+    console.error('Erro ao adicionar histórico:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE /students/:id/historico/:historicoId - Excluir histórico
+router.delete('/:id/historico/:historicoId', async (req, res) => {
+  try {
+    const { id, historicoId } = req.params;
+    
+    if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(historicoId)) {
+      return res.status(400).json({ error: 'ID inválido' });
+    }
+
+    const student = await Student.findById(id);
+    
+    if (!student) {
+      return res.status(404).json({ error: 'Aluno não encontrado' });
+    }
+
+    student.historico = student.historico.filter(h => h._id.toString() !== historicoId);
+    await student.save();
+
+    res.json({ message: 'Histórico excluído com sucesso' });
+  } catch (err) {
+    console.error('Erro ao excluir histórico:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
